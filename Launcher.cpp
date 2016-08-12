@@ -2,7 +2,7 @@
 #include <fstream>
 #include <cstring>
 #include <string>
-#include <stdlib.h>
+#include <cstdlib>
 #include "Simulator.h"
 using namespace std;
 

@@ -1,11 +1,12 @@
 #include "Simulator.h"
 #include <iostream>
 #include <fstream>
+#include <cstdlib>
 
 using namespace std;
 
 Simulator::Simulator(const std::string& replacementAlgorithm, const int& frames, const int& frameSize,
-			const int& quantum, const int& workingSetSize, const int& maxReferences) {
+			const int& quantum, const int& workingSetSize, const int& maxReferences) : invertedPageTable(frames) {
 	this->replacementAlgorithm = replacementAlgorithm;
 	this->frames = frames;
 	this->frameSize = frameSize;
@@ -23,10 +24,19 @@ void Simulator::run() {
 	ifstream trace2;
 	trace1.open("bzip.trace", ios::in);
 	trace2.open("gcc.trace", ios::in);
-	string address; // obj
 
-	while (this->getTrace(trace1, trace2).compare("")) {
-		cout << address << endl;
+	Address *address;
+	while ((address = this->getTrace(trace1, trace2)) != NULL) {
+		invertedPageTable.print();
+		cout << "Trace: " << address->toString() << endl;
+		Address **freeFrame = invertedPageTable.getFreeFrame();
+		if (freeFrame == NULL) {
+			cout << "Page fault" << endl;
+			delete address;
+		}
+		else {
+			invertedPageTable.occupyFrame(freeFrame, address);
+		}
 	}
 
 	trace1.close();
@@ -34,22 +44,26 @@ void Simulator::run() {
 
 }
 
-string Simulator::getTrace(ifstream& trace1, ifstream& trace2) {
+Address *Simulator::getTrace(ifstream& trace1, ifstream& trace2) {
 	static int processId = 1;
-	static int quantum = this->quantum;
+	static int curQuantum = quantum;
 	static int referenceNumber = 0;
 	static istream *trace = &trace1;
-	string address = ""; // change to object address
+	string hexAddress;
 
-	if (referenceNumber++ == this->maxReferences || getline(*trace, address) == NULL) {
-		return "";
+	if (referenceNumber++ == maxReferences || getline(*trace, hexAddress) == NULL) {
+		return NULL;
 	}
-	// make address object before prossibly changing processId
-	cout << address << processId;
-	if (! --quantum) {
-		quantum = this->quantum;
+
+	long decAddress = strtoul(hexAddress.c_str(), NULL, 16);
+	int pageNumber = decAddress / frameSize;
+	int offset = decAddress % frameSize;
+	Address *address = new Address(processId, pageNumber, offset);
+
+	if (! --curQuantum) {
+		curQuantum = quantum;
 		toggleProcessId(processId); //return it first
-		toggleTrace(trace, trace1, trace2);
+		toggleTrace(&trace, trace1, trace2);
 	}
 	return address;
 }
@@ -63,15 +77,12 @@ void Simulator::toggleProcessId(int& processId) {
 	}
 }
 
-void Simulator::toggleTrace(istream *trace, ifstream& trace1, ifstream& trace2) {
-	if (trace == &trace1) {
-		cout << "in 1" << endl;
-		trace = &trace2;
+void Simulator::toggleTrace(istream **trace, ifstream& trace1, ifstream& trace2) {
+	if (*trace == &trace1) {
+		*trace = &trace2;
 	}
-	else {cout << "in 2" << endl;
-		trace = &trace1;
+	else {
+		*trace = &trace1;
 	}
-	cout << trace << endl;
-	cout << "trace1 " << trace1 << " trace2 " << trace2 << endl;
 }
 
