@@ -12,6 +12,7 @@ private:
 public:
 	InvertedPageTable(const int& frames);
 	~InvertedPageTable();
+	Address *getFrameByAddress(const Address& address);
 	Address **getFreeFrame();
 	void occupyFrame(Address **frame, Address *content);
 	void print();

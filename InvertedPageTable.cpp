@@ -15,13 +15,26 @@ InvertedPageTable::InvertedPageTable(const int& frames) {
 InvertedPageTable::~InvertedPageTable() {
 	int frame;
 	for (frame = 0 ; frame < invertedPageTableSize ; frame++ ) {
-		if (invertedPageTable[frame] != NULL) { cout << "del " << frame;
+		if (invertedPageTable[frame] != NULL) {
 			delete invertedPageTable[frame];
 		}
 	}
 	delete[] invertedPageTable;
 }
 
+Address *InvertedPageTable::getFrameByAddress(const Address& address) {
+	int frame;
+	for (frame = 0 ; frame < invertedPageTableSize ; frame++ ) {
+		if (invertedPageTable[frame] != NULL && invertedPageTable[frame]->equals(address)) {
+			return invertedPageTable[frame];
+		}
+	}
+	return NULL;
+}
+
+/* Return first unoccupied frame, NULL if none found.
+ * Return type: Address ** so that caller can modify it.
+ */
 Address **InvertedPageTable::getFreeFrame() {
 	int frame;
 	for (frame = 0 ; frame < invertedPageTableSize ; frame++ ) {
