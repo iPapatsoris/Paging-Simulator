@@ -22,19 +22,18 @@ InvertedPageTable::~InvertedPageTable() {
 	delete[] invertedPageTable;
 }
 
-Address *InvertedPageTable::getFrameByAddress(const Address& address) {
+/* Return frame holding given Address, NULL if not found */
+Address **InvertedPageTable::getFrameByAddress(const Address& address) {
 	int frame;
 	for (frame = 0 ; frame < invertedPageTableSize ; frame++ ) {
 		if (invertedPageTable[frame] != NULL && invertedPageTable[frame]->equals(address)) {
-			return invertedPageTable[frame];
+			return &invertedPageTable[frame];
 		}
 	}
 	return NULL;
 }
 
-/* Return first unoccupied frame, NULL if none found.
- * Return type: Address ** so that caller can modify it.
- */
+/* Return first unoccupied frame, NULL if none found */
 Address **InvertedPageTable::getFreeFrame() {
 	int frame;
 	for (frame = 0 ; frame < invertedPageTableSize ; frame++ ) {

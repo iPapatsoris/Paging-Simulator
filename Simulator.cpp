@@ -23,7 +23,9 @@ Simulator::Simulator(const std::string& replacementAlgorithm, const int& frames,
 }
 
 Simulator::~Simulator() {
-	// TODO Auto-generated destructor stub
+	if (! replacementAlgorithm.compare("lru")) {
+		delete lru;
+	}
 }
 
 void Simulator::run() {
@@ -37,31 +39,51 @@ void Simulator::run() {
 	int diskWrites = 0;
 	//int diskReads = 0;
 
+	/* Receive page requests */
 	Address *address;
 	while ((address = this->getTrace(trace1, trace2)) != NULL) {
 		pageRequests++;
-		invertedPageTable.print();
+		//invertedPageTable.print();
 		if (! replacementAlgorithm.compare("lru")) {
-			lru->print();
+			;//lru->print();
 		}
-		cout << "Trace: " << address->toString() << endl;
-		Address *mappingFrame = invertedPageTable.getFrameByAddress(*address);
+		//cout << "Trace: " << address->toString() << endl;
+		Address **mappingFrame = invertedPageTable.getFrameByAddress(*address);
 		if (mappingFrame != NULL) {
+			/* Page already in memory */
 			if (! replacementAlgorithm.compare("lru")) {
-				lru->prioritize(address);
+				lru->prioritize(*mappingFrame);
 			}
-			if (address->getDirty() == true && mappingFrame->getDirty() == false) {
-				mappingFrame->setDirty(true);
+			/* Check for 'write' request */
+			if (address->getDirty() == true && (*mappingFrame)->getDirty() == false) {
+				(*mappingFrame)->setDirty(true);
 				cout << "Page " << address->getPageNmuber() << " from process " << address->getProcessId()
-								<< " changed to dirty" << endl;
+												<< " changed to dirty" << endl;
 			}
+			delete address;
 		}
 		else {
+			/* Page not in memory */
 			Address **freeFrame = invertedPageTable.getFreeFrame();
 			if (freeFrame == NULL) {
-				cout << "Page fault" << endl;
+				Address *victim;
+				if (! replacementAlgorithm.compare("lru")) {
+					victim = lru->getVictim();
+					Address **victimFrame = invertedPageTable.getFrameByAddress(*victim);
+					if (victim->getDirty()) {
+						diskWrites++;
+					}
+					*victimFrame = address;
+					lru->getRecentList().push_front(address);
+				}
 				pageFaults++;
-				delete address;
+				printPageFault(victim, address);
+				if (victim->getDirty()) {
+					cout << " Saving victim to disk";
+				}
+				cout << endl;
+
+				delete victim;
 			}
 			else {
 				invertedPageTable.occupyFrame(freeFrame, address);
@@ -78,6 +100,7 @@ void Simulator::run() {
 
 }
 
+/* Return next page request according to parameters */
 Address *Simulator::getTrace(ifstream& trace1, ifstream& trace2) {
 	static int processId = 1;
 	static int curQuantum = quantum;
@@ -88,7 +111,7 @@ Address *Simulator::getTrace(ifstream& trace1, ifstream& trace2) {
 	if (referenceNumber++ == maxReferences || getline(*trace, line).eof()) {
 		return NULL;
 	}
-	char *c_line = new char(line.length()+1);
+	char *c_line = new char[line.length()+1];
 	strcpy(c_line, line.c_str());
 	char *c_hexAddress = strtok(c_line, " ");
 	char *c_operation = strtok(NULL, " \n\0");
@@ -101,8 +124,9 @@ Address *Simulator::getTrace(ifstream& trace1, ifstream& trace2) {
 		dirty = true;
 	}
 	Address *address = new Address(processId, pageNumber, dirty, offset);
-	delete c_line;
+	delete[] c_line;
 
+	/* Switch trace between processes */
 	if (! --curQuantum) {
 		curQuantum = quantum;
 		toggleProcessId(processId); //return it first
@@ -111,6 +135,7 @@ Address *Simulator::getTrace(ifstream& trace1, ifstream& trace2) {
 	return address;
 }
 
+/* Switch process */
 void Simulator::toggleProcessId(int& processId) {
 	if (processId == 1) {
 		processId = 2;
@@ -120,6 +145,7 @@ void Simulator::toggleProcessId(int& processId) {
 	}
 }
 
+/* Switch input */
 void Simulator::toggleTrace(istream **trace, ifstream& trace1, ifstream& trace2) {
 	if (*trace == &trace1) {
 		*trace = &trace2;
@@ -127,5 +153,11 @@ void Simulator::toggleTrace(istream **trace, ifstream& trace1, ifstream& trace2)
 	else {
 		*trace = &trace1;
 	}
+}
+
+void Simulator::printPageFault(Address *victim, Address *address) {
+	cout << "Page fault. Replacing page " << victim->getPageNmuber() << " from process "
+			<< victim->getProcessId() << " with page " << address->getPageNmuber()
+			<< " from process " << address->getProcessId() << ".";
 }
 

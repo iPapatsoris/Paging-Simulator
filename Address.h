@@ -13,7 +13,7 @@ private:
 
 public:
 	Address(const int& processId, const int& pageNumber, const bool& dirty, const int& offset);
-	~Address();
+	~Address() {}
 	bool getDirty() {return dirty;}
 	int getProcessId() {return processId;}
 	int getPageNmuber() {return pageNumber;}

@@ -1,18 +1,28 @@
-OBJS =  Launcher.o Simulator.o
+OBJS =  Launcher.o Simulator.o Address.o InvertedPageTable.o LRU.o
+HEADER = Simulator.h Address.h InvertedPageTable.h LRU.h
 
 all: psim
 
-CC 	= g++
-FLAGS	= -c
+CC 	= g++ -g
+FLAGS	= -c 
 
-psim: $(OBJS) 
+psim: $(OBJS) $(HEADER)
 	$(CC) -o psim $(OBJS)
 
 Launcher.o: Launcher.cpp
-	$(CC) $(FLAGS) Launcher.cpp
+	$(CC) $(FLAGS) Launcher.cpp 
 
 Simulator.o: Simulator.cpp
-	$(CC) $(FLAGS) Simulator.cpp
+	$(CC) $(FLAGS) Simulator.cpp 
+
+Address.o: Address.cpp
+	$(CC) $(FLAGS) Address.cpp -std=c++11
+
+InvertedPageTable.o: InvertedPageTable.cpp
+	$(CC) $(FLAGS) InvertedPageTable.cpp
+
+LRU.o: LRU.cpp
+	$(CC) $(FLAGS) LRU.cpp 
 
 clean:
 	rm -f psim $(OBJS)

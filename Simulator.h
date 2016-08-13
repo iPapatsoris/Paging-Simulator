@@ -29,6 +29,7 @@ public:
 	Address *getTrace(std::ifstream& trace1, std::ifstream& trace2);
 	void static toggleProcessId(int& processId);
 	void static toggleTrace(std::istream **trace, std::ifstream& trace1, std::ifstream& trace2);
+	void static printPageFault(Address *victim, Address *address);
 };
 
 #endif /* SIMULATOR_H_ */

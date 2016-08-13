@@ -1,19 +1,20 @@
 #ifndef LRU_H_
 #define LRU_H_
 
-#include <forward_list>
+#include <list>
 #include "Address.h"
 
 class LRU {
 
 private:
-	std::forward_list<Address *> recentList;
+	std::list<Address *> recentList;
 
 public:
-	LRU();
-	~LRU();
-	std::forward_list<Address *>& getRecentList() {return recentList;}
+	LRU() {}
+	~LRU() {}
+	std::list<Address *>& getRecentList() {return recentList;}
 	void prioritize(Address *address);
+	Address *getVictim();
 	void print();
 };
 

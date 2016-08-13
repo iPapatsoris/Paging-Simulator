@@ -10,10 +10,6 @@ Address::Address(const int& processId, const int& pageNumber, const bool& dirty,
 	this->offset = offset;
 }
 
-Address::~Address() {
-	// TODO Auto-generated destructor stub
-}
-
 bool Address::equals(Address address) {
 	return pageNumber == address.pageNumber && processId == address.processId;
 }
