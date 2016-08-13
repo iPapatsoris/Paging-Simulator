@@ -14,6 +14,12 @@ Simulator::Simulator(const std::string& replacementAlgorithm, const int& frames,
 	this->quantum = quantum;
 	this->workingSetSize = workingSetSize;
 	this->maxReferences = maxReferences;
+	if (! replacementAlgorithm.compare("lru")) {
+		lru = new LRU();
+	}
+	else if (replacementAlgorithm.compare("ws")) {
+		;
+	}
 }
 
 Simulator::~Simulator() {
@@ -35,9 +41,15 @@ void Simulator::run() {
 	while ((address = this->getTrace(trace1, trace2)) != NULL) {
 		pageRequests++;
 		invertedPageTable.print();
+		if (! replacementAlgorithm.compare("lru")) {
+			lru->print();
+		}
 		cout << "Trace: " << address->toString() << endl;
 		Address *mappingFrame = invertedPageTable.getFrameByAddress(*address);
 		if (mappingFrame != NULL) {
+			if (! replacementAlgorithm.compare("lru")) {
+				lru->prioritize(address);
+			}
 			if (address->getDirty() == true && mappingFrame->getDirty() == false) {
 				mappingFrame->setDirty(true);
 				cout << "Page " << address->getPageNmuber() << " from process " << address->getProcessId()
@@ -53,6 +65,9 @@ void Simulator::run() {
 			}
 			else {
 				invertedPageTable.occupyFrame(freeFrame, address);
+				if (! replacementAlgorithm.compare("lru")) {
+					lru->getRecentList().push_front(address);
+				}
 			}
 		}
 	}
@@ -70,7 +85,7 @@ Address *Simulator::getTrace(ifstream& trace1, ifstream& trace2) {
 	static istream *trace = &trace1;
 	string line;
 
-	if (referenceNumber++ == maxReferences || getline(*trace, line) == NULL) {
+	if (referenceNumber++ == maxReferences || getline(*trace, line).eof()) {
 		return NULL;
 	}
 	char *c_line = new char(line.length()+1);

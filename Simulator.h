@@ -6,6 +6,7 @@
 #include <fstream>
 #include "Address.h"
 #include "InvertedPageTable.h"
+#include "LRU.h"
 
 class Simulator {
 
@@ -17,6 +18,7 @@ private:
 	int workingSetSize;
 	int maxReferences;
 	InvertedPageTable invertedPageTable;
+	LRU *lru;
 
 
 public:
