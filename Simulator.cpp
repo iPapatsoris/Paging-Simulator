@@ -57,7 +57,7 @@ void Simulator::run() {
 			/* Check for 'write' request */
 			if (address->getDirty() == true && (*mappingFrame)->getDirty() == false) {
 				(*mappingFrame)->setDirty(true);
-				cout << "Page " << address->getPageNmuber() << " from process " << address->getProcessId()
+				cout << "Page " << address->getPageNumber() << " from process " << address->getProcessId()
 												<< " changed to dirty" << endl;
 			}
 			delete address;
@@ -156,8 +156,8 @@ void Simulator::toggleTrace(istream **trace, ifstream& trace1, ifstream& trace2)
 }
 
 void Simulator::printPageFault(Address *victim, Address *address) {
-	cout << "Page fault. Replacing page " << victim->getPageNmuber() << " from process "
-			<< victim->getProcessId() << " with page " << address->getPageNmuber()
+	cout << "Page fault. Replacing page " << victim->getPageNumber() << " from process "
+			<< victim->getProcessId() << " with page " << address->getPageNumber()
 			<< " from process " << address->getProcessId() << ".";
 }
 

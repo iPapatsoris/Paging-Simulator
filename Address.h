@@ -16,7 +16,7 @@ public:
 	~Address() {}
 	bool getDirty() {return dirty;}
 	int getProcessId() {return processId;}
-	int getPageNmuber() {return pageNumber;}
+	int getPageNumber() {return pageNumber;}
 	void setDirty(const bool& dirty) {this->dirty = dirty;}
 	bool equals(Address address);
 	std::string toString();
