@@ -49,9 +49,13 @@ int main(int argc, char **argv) {
 		exit(EXIT_FAILURE);
 	}
 	if (!replacementAlgorithm.compare("ws") && !workingSetSize) {
-		cout << "Failure: did not provide window size for working set with -w <window>" << endl;
+		cout << "Failure: did not provide working set size with -w <window>" << endl;
 		exit(EXIT_FAILURE);
 	}
+	if (!replacementAlgorithm.compare("ws") && workingSetSize > frames) {
+			cout << "Failure: working set size should be less or equal to the number of frames" << endl;
+			exit(EXIT_FAILURE);
+		}
 	cout << replacementAlgorithm << " " << frames << " " << quantum  << endl;
 	cout << workingSetSize << maxReferences << endl;
 

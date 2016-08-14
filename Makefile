@@ -1,5 +1,5 @@
-OBJS =  Launcher.o Simulator.o Address.o InvertedPageTable.o LRU.o
-HEADER = Simulator.h Address.h InvertedPageTable.h LRU.h
+OBJS =  Launcher.o Simulator.o Address.o InvertedPageTable.o LRU.o WorkingSet.o
+HEADER = Simulator.h Address.h InvertedPageTable.h LRU.h WorkingSet.o
 
 all: psim
 
@@ -24,6 +24,9 @@ InvertedPageTable.o: InvertedPageTable.cpp
 LRU.o: LRU.cpp
 	$(CC) $(FLAGS) LRU.cpp 
 
+WorkingSet.o: WorkingSet.cpp
+	$(CC) $(FLAGS) WorkingSet.cpp
+	
 clean:
 	rm -f psim $(OBJS)
 	

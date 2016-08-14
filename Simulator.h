@@ -7,6 +7,7 @@
 #include "Address.h"
 #include "InvertedPageTable.h"
 #include "LRU.h"
+#include "WorkingSet.h"
 
 class Simulator {
 
@@ -19,6 +20,7 @@ private:
 	int maxReferences;
 	InvertedPageTable invertedPageTable;
 	LRU *lru;
+	WorkingSetManager *workingSetManager;
 
 
 public:

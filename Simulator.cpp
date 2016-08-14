@@ -17,14 +17,17 @@ Simulator::Simulator(const std::string& replacementAlgorithm, const int& frames,
 	if (! replacementAlgorithm.compare("lru")) {
 		lru = new LRU();
 	}
-	else if (replacementAlgorithm.compare("ws")) {
-		;
+	else if (! replacementAlgorithm.compare("ws")) {
+		workingSetManager = new WorkingSetManager(workingSetSize);
 	}
 }
 
 Simulator::~Simulator() {
 	if (! replacementAlgorithm.compare("lru")) {
 		delete lru;
+	}
+	else if (! replacementAlgorithm.compare("ws")) {
+		delete workingSetManager;
 	}
 }
 
@@ -39,15 +42,20 @@ void Simulator::run() {
 	int diskWrites = 0;
 	//int diskReads = 0;
 
+
+
 	/* Receive page requests */
 	Address *address;
 	while ((address = this->getTrace(trace1, trace2)) != NULL) {
 		pageRequests++;
-		//invertedPageTable.print();
+		invertedPageTable.print();
 		if (! replacementAlgorithm.compare("lru")) {
 			;//lru->print();
 		}
-		//cout << "Trace: " << address->toString() << endl;
+		else if (! replacementAlgorithm.compare("ws")) {
+			;//workingSet->print();
+		}
+		cout << "Trace: " << address->toString() << endl;
 		Address **mappingFrame = invertedPageTable.getFrameByAddress(*address);
 		if (mappingFrame != NULL) {
 			/* Page already in memory */
@@ -58,7 +66,7 @@ void Simulator::run() {
 			if (address->getDirty() == true && (*mappingFrame)->getDirty() == false) {
 				(*mappingFrame)->setDirty(true);
 				cout << "Page " << address->getPageNumber() << " from process " << address->getProcessId()
-												<< " changed to dirty" << endl;
+														<< " changed to dirty" << endl;
 			}
 			delete address;
 		}
