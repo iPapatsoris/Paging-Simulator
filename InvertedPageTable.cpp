@@ -48,6 +48,17 @@ void InvertedPageTable::occupyFrame(Address **frame, Address *content) {
 	*frame = content;
 }
 
+/*Address **InvertedPageTable::getVictimFrameNotInSet(unordered_set<int> workingSet, const int& processId) {
+	for (int frame = 0 ; frame < invertedPageTableSize ; frame++) {
+		Address address = Address(processId, )
+		if (invertedPageTable[frame]->equals() ) {
+			return &invertedPageTable[frame];
+		}
+	}
+	return NULL;
+}
+}*/
+
 void InvertedPageTable::print() {
 	cout << "\n~~~ InvertedPageTable ~~~\n";
 	int frame;

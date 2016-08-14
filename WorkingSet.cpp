@@ -1,5 +1,6 @@
 #include "WorkingSet.h"
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 
@@ -23,22 +24,27 @@ WorkingSet *WorkingSetManager::getWorkingSetByProcess(const int& processId) {
 	return workingSet[processId-1];
 }
 
-void WorkingSet::update(const int& pageNumber, int& victimPageNumber) {
-	victimPageNumber = -1;
+void WorkingSet::update(const Address& address, Address **victimAddress) {
 	if (this->recentListIsFull()) {
-		victimPageNumber = recentList.front();
-		recentList.pop_front();
-		if (this->workingSetIsFull()) {
-			if (! workingSet.erase(victimPageNumber)) {
-				victimPageNumber = -1;
-			}
+		*victimAddress = new Address(recentList.front());
+		recentList.pop_front(); cout << "null? " << bool(*victimAddress == NULL) << endl;
+		if (this->workingSetIsFull() && find(recentList.begin(), recentList.end(), **victimAddress) == recentList.end()) {
+			workingSet.remove(**victimAddress); cout << "ok" << endl;
+		}
+		else { cout << "no" << endl;
+			delete *victimAddress;
+			*victimAddress = NULL;
 		}
 	}
-	recentList.push_back(pageNumber);
-	workingSet.insert(pageNumber);
+	recentList.push_back(address);
+	if (find(workingSet.begin(), workingSet.end(), address) == workingSet.end()) {
+		workingSet.push_back(address);
+	}
+	if (*victimAddress == NULL)
+			cout << "NULL0" << endl;
 }
 
-unordered_set<int> WorkingSet::getWorkingSet() {
+list<Address> WorkingSet::getWorkingSet() {
 	return workingSet;
 }
 
@@ -52,12 +58,12 @@ bool WorkingSet::workingSetIsFull() {
 
 void WorkingSet::print() {
 	cout << "\n=== Recent List === " << endl;
-	for (list<int>::iterator it = recentList.begin() ; it != recentList.end() ; it++) {
-		cout << (*it) << endl;
+	for (list<Address>::iterator it = recentList.begin() ; it != recentList.end() ; it++) {
+		cout << (*it).toString() << endl;
 	}
 	cout << "=== Working Set === " << endl;
-	for (unordered_set<int>::iterator it = workingSet.begin() ; it != workingSet.end() ; it++) {
-		cout << (*it) << endl;
+	for (list<Address>::iterator it = workingSet.begin() ; it != workingSet.end() ; it++) {
+		cout << (*it).toString() << endl;
 	}
 
 	cout << endl;

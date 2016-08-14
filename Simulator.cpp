@@ -103,8 +103,10 @@ void Simulator::runWorkingSet(Address *address, bool& processSwitch) {
 	if (processSwitch) {
 		processSwitch = false;
 	}
-	int victimPageNumber;
-	workingSet->update(address->getPageNumber(), victimPageNumber);
+	Address *victimAddress = NULL;
+	workingSet->update(*address, &victimAddress);
+	if (victimAddress == NULL)
+		cout << "NULL1" << endl;
 
 	Address **mappingFrame = invertedPageTable.getFrameByAddress(*address);
 	if (mappingFrame != NULL) {
@@ -124,13 +126,13 @@ void Simulator::runWorkingSet(Address *address, bool& processSwitch) {
 			printPageFault(NULL, address);
 		}
 		else {
-			Address **victimFrame; cout << victimPageNumber << endl;
-			if (victimPageNumber != -1) {
-				Address victim = Address(address->getProcessId(), victimPageNumber, false, 0);
-				victimFrame = invertedPageTable.getFrameByAddress(victim);
+			Address **victimFrame;
+			if (victimAddress != NULL) {
+				victimFrame = invertedPageTable.getFrameByAddress(*victimAddress);
 			}
 			else {
 				cout << "under development!" << endl;//delete something not in set
+				exit(EXIT_FAILURE);
 			}
 			Address *toDelete = *victimFrame;
 			*victimFrame = address;
@@ -142,6 +144,9 @@ void Simulator::runWorkingSet(Address *address, bool& processSwitch) {
 			cout << endl;
 			delete toDelete;
 		}
+	}
+	if (victimAddress != NULL) {
+		delete victimAddress;
 	}
 	workingSet->print();
 
@@ -165,12 +170,11 @@ Address *Simulator::getTrace(ifstream& trace1, ifstream& trace2, bool& processSw
 
 	long decAddress = strtoul(c_hexAddress, NULL, 16);
 	int pageNumber = decAddress / frameSize;
-	int offset = decAddress % frameSize;
 	bool dirty = false;
 	if (*c_operation == 'W') {
 		dirty = true;
 	}
-	Address *address = new Address(processId, pageNumber, dirty, offset);
+	Address *address = new Address(processId, pageNumber, dirty);
 	delete[] c_line;
 
 	/* Switch trace between processes */

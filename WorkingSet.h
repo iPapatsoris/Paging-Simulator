@@ -4,20 +4,20 @@
 #define NO_PROCESSES 2
 
 #include <list>
-#include <unordered_set>
+#include "Address.h"
 
 class WorkingSet {
 
 private:
-	std::list<int> recentList;
-	std::unordered_set<int> workingSet;
+	std::list<Address> recentList;
+	std::list< Address> workingSet;
 	int workingSetMaxSize;
 
 public:
 	WorkingSet(const int& workingSetMaxSize) : workingSetMaxSize(workingSetMaxSize) {}
 	~WorkingSet() {}
-	void update(const int& pageNumber, int& victimPageNumber);
-	std::unordered_set<int> getWorkingSet();
+	void update(const Address& address, Address **victimAddress);
+	std::list<Address> getWorkingSet();
 	bool recentListIsFull();
 	bool workingSetIsFull();
 	void print();

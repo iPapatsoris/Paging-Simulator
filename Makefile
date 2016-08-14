@@ -19,7 +19,7 @@ Address.o: Address.cpp
 	$(CC) $(FLAGS) Address.cpp -std=c++11
 
 InvertedPageTable.o: InvertedPageTable.cpp
-	$(CC) $(FLAGS) InvertedPageTable.cpp
+	$(CC) $(FLAGS) InvertedPageTable.cpp -std=c++11
 
 LRU.o: LRU.cpp
 	$(CC) $(FLAGS) LRU.cpp 
