@@ -4,17 +4,22 @@
 #define NO_PROCESSES 2
 
 #include <list>
-#include "InvertedPageTable.h"
+#include <unordered_set>
 
 class WorkingSet {
 
 private:
-	std::list<Address *> workingSet;
+	std::list<int> recentList;
+	std::unordered_set<int> workingSet;
 	int workingSetMaxSize;
 
 public:
 	WorkingSet(const int& workingSetMaxSize) : workingSetMaxSize(workingSetMaxSize) {}
 	~WorkingSet() {}
+	void update(const int& pageNumber, int& victimPageNumber);
+	std::unordered_set<int> getWorkingSet();
+	bool recentListIsFull();
+	bool workingSetIsFull();
 	void print();
 };
 
@@ -27,7 +32,7 @@ private:
 public:
 	WorkingSetManager(const int& workingSetMaxSize);
 	~WorkingSetManager();
-	void putInMemory(InvertedPageTable& invertedPageTable, Address *address, const bool& proccessSwitch);
+	WorkingSet *getWorkingSetByProcess(const int& processId);
 };
 
 

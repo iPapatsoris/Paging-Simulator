@@ -37,79 +37,118 @@ void Simulator::run() {
 	trace1.open("bzip.trace", ios::in);
 	trace2.open("gcc.trace", ios::in);
 
-	int pageRequests = 0;
-	int pageFaults = 0;
-	int diskWrites = 0;
-	//int diskReads = 0;
-
-
+	bool processSwitch = false;
 
 	/* Receive page requests */
 	Address *address;
-	while ((address = this->getTrace(trace1, trace2)) != NULL) {
-		pageRequests++;
+	while ((address = this->getTrace(trace1, trace2, processSwitch)) != NULL) {
+		statistics.pageRequests++;
 		invertedPageTable.print();
+		cout << "Trace: " << address->toString() << endl;
 		if (! replacementAlgorithm.compare("lru")) {
-			;//lru->print();
+			this->runLRU(address);
 		}
 		else if (! replacementAlgorithm.compare("ws")) {
-			;//workingSet->print();
-		}
-		cout << "Trace: " << address->toString() << endl;
-		Address **mappingFrame = invertedPageTable.getFrameByAddress(*address);
-		if (mappingFrame != NULL) {
-			/* Page already in memory */
-			if (! replacementAlgorithm.compare("lru")) {
-				lru->prioritize(*mappingFrame);
-			}
-			/* Check for 'write' request */
-			if (address->getDirty() == true && (*mappingFrame)->getDirty() == false) {
-				(*mappingFrame)->setDirty(true);
-				cout << "Page " << address->getPageNumber() << " from process " << address->getProcessId()
-														<< " changed to dirty" << endl;
-			}
-			delete address;
-		}
-		else {
-			/* Page not in memory */
-			Address **freeFrame = invertedPageTable.getFreeFrame();
-			if (freeFrame == NULL) {
-				Address *victim;
-				if (! replacementAlgorithm.compare("lru")) {
-					victim = lru->getVictim();
-					Address **victimFrame = invertedPageTable.getFrameByAddress(*victim);
-					if (victim->getDirty()) {
-						diskWrites++;
-					}
-					*victimFrame = address;
-					lru->getRecentList().push_front(address);
-				}
-				pageFaults++;
-				printPageFault(victim, address);
-				if (victim->getDirty()) {
-					cout << " Saving victim to disk";
-				}
-				cout << endl;
-
-				delete victim;
-			}
-			else {
-				invertedPageTable.occupyFrame(freeFrame, address);
-				if (! replacementAlgorithm.compare("lru")) {
-					lru->getRecentList().push_front(address);
-				}
-			}
+			this->runWorkingSet(address, processSwitch);
 		}
 	}
-
-	cout << "\nFrames: " << frames << "\nPage requests: " << pageRequests << "\nPage faults: " << pageFaults << "\nDisk writes: " << diskWrites << endl;
+	cout << "\nFrames: " << frames << statistics.toString() << endl;
 	trace1.close();
 	trace2.close();
 
 }
 
+void Simulator::runLRU(Address *address) {
+	//lru->print();
+	Address **mappingFrame = invertedPageTable.getFrameByAddress(*address);
+	if (mappingFrame != NULL) {
+		/* Page already in memory */
+		lru->prioritize(*mappingFrame);
+		/* Check for 'write' request */
+		if (address->getDirty() == true && (*mappingFrame)->getDirty() == false) {
+			(*mappingFrame)->setDirty(true);
+			cout << "Page " << address->getPageNumber() << " from process " << address->getProcessId()
+																															<< " changed to dirty" << endl;
+		}
+		delete address;
+	}
+	else {
+		/* Page not in memory */
+		statistics.pageFaults++;
+		Address **freeFrame = invertedPageTable.getFreeFrame();
+		if (freeFrame == NULL) {
+			Address *victim;
+			victim = lru->getVictim();
+			Address **victimFrame = invertedPageTable.getFrameByAddress(*victim);
+			*victimFrame = address;
+			lru->getRecentList().push_front(address);
+			printPageFault(victim, address);
+			if (victim->getDirty()) {
+				cout << " Saving victim to disk.";
+				statistics.diskWrites++;
+			}
+			cout << endl;
+			delete victim;
+		}
+		else {
+			invertedPageTable.occupyFrame(freeFrame, address);
+			lru->getRecentList().push_front(address);
+			printPageFault(NULL, address);
+		}
+	}
+}
+
+void Simulator::runWorkingSet(Address *address, bool& processSwitch) {
+	WorkingSet *workingSet = workingSetManager->getWorkingSetByProcess(address->getProcessId());
+	if (processSwitch) {
+		processSwitch = false;
+	}
+	int victimPageNumber;
+	workingSet->update(address->getPageNumber(), victimPageNumber);
+
+	Address **mappingFrame = invertedPageTable.getFrameByAddress(*address);
+	if (mappingFrame != NULL) {
+		/* Page already in memory, check for 'write' request */
+		if (address->getDirty() == true && (*mappingFrame)->getDirty() == false) {
+			(*mappingFrame)->setDirty(true);
+			cout << "Page " << address->getPageNumber() << " from process " << address->getProcessId()
+																																	<< " changed to dirty" << endl;
+		}
+		delete address;
+	}
+	else {
+		statistics.pageFaults++;
+		Address **freeFrame = invertedPageTable.getFreeFrame();
+		if (freeFrame != NULL) {
+			invertedPageTable.occupyFrame(freeFrame, address);
+			printPageFault(NULL, address);
+		}
+		else {
+			Address **victimFrame; cout << victimPageNumber << endl;
+			if (victimPageNumber != -1) {
+				Address victim = Address(address->getProcessId(), victimPageNumber, false, 0);
+				victimFrame = invertedPageTable.getFrameByAddress(victim);
+			}
+			else {
+				cout << "under development!" << endl;//delete something not in set
+			}
+			Address *toDelete = *victimFrame;
+			*victimFrame = address;
+			printPageFault(toDelete, address);
+			if (toDelete->getDirty()) {
+				cout << " Saving victim to disk.";
+				statistics.diskWrites++;
+			}
+			cout << endl;
+			delete toDelete;
+		}
+	}
+	workingSet->print();
+
+}
+
 /* Return next page request according to parameters */
-Address *Simulator::getTrace(ifstream& trace1, ifstream& trace2) {
+Address *Simulator::getTrace(ifstream& trace1, ifstream& trace2, bool& processSwitch) {
 	static int processId = 1;
 	static int curQuantum = quantum;
 	static int referenceNumber = 0;
@@ -137,8 +176,9 @@ Address *Simulator::getTrace(ifstream& trace1, ifstream& trace2) {
 	/* Switch trace between processes */
 	if (! --curQuantum) {
 		curQuantum = quantum;
-		toggleProcessId(processId); //return it first
+		toggleProcessId(processId);
 		toggleTrace(&trace, trace1, trace2);
+		processSwitch = true;
 	}
 	return address;
 }
@@ -164,8 +204,11 @@ void Simulator::toggleTrace(istream **trace, ifstream& trace1, ifstream& trace2)
 }
 
 void Simulator::printPageFault(Address *victim, Address *address) {
-	cout << "Page fault. Replacing page " << victim->getPageNumber() << " from process "
-			<< victim->getProcessId() << " with page " << address->getPageNumber()
-			<< " from process " << address->getProcessId() << ".";
+	cout << "Page fault on requesting page " << address->getPageNumber() << " from process "
+			<< address->getProcessId() << ".";
+	if (victim != NULL) {
+		cout << " Memory full, replacing page " << victim->getPageNumber() << " from process "
+				<< victim->getProcessId() << ".";
+	}
 }
 

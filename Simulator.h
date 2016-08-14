@@ -8,6 +8,7 @@
 #include "InvertedPageTable.h"
 #include "LRU.h"
 #include "WorkingSet.h"
+#include "Statistics.h"
 
 class Simulator {
 
@@ -21,6 +22,7 @@ private:
 	InvertedPageTable invertedPageTable;
 	LRU *lru;
 	WorkingSetManager *workingSetManager;
+	Statistics statistics;
 
 
 public:
@@ -28,7 +30,9 @@ public:
 			const int& quantum, const int& workingSetSize, const int& maxReferences);
 	~Simulator();
 	void run();
-	Address *getTrace(std::ifstream& trace1, std::ifstream& trace2);
+	void runLRU(Address *address);
+	void runWorkingSet(Address *address, bool& processSwitch);
+	Address *getTrace(std::ifstream& trace1, std::ifstream& trace2, bool& processSwitch);
 	void static toggleProcessId(int& processId);
 	void static toggleTrace(std::istream **trace, std::ifstream& trace1, std::ifstream& trace2);
 	void static printPageFault(Address *victim, Address *address);
