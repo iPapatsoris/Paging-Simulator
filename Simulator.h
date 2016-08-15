@@ -33,6 +33,7 @@ public:
 	void runLRU(Address *address);
 	void runWorkingSet(Address *address, bool& processSwitch);
 	Address *getTrace(std::ifstream& trace1, std::ifstream& trace2, bool& processSwitch);
+	void restoreWorkingSetMemory(std::list<Address>& workingSet, bool& restore);
 	void static toggleProcessId(int& processId);
 	void static toggleTrace(std::istream **trace, std::ifstream& trace1, std::ifstream& trace2);
 	void static printPageFault(Address *victim, Address *address);

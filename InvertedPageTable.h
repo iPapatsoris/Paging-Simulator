@@ -2,7 +2,7 @@
 #define INVERTEDPAGETABLE_H_
 
 #include "Address.h"
-#include "unordered_set"
+#include "list"
 
 class InvertedPageTable {
 
@@ -15,7 +15,7 @@ public:
 	~InvertedPageTable();
 	Address **getFrameByAddress(const Address& address);
 	Address **getFreeFrame();
-	//Address **getVictimFrameNotInSet();
+	Address **getVictimFrameNotInSet(const std::list<Address>& workingSet);
 	void occupyFrame(Address **frame, Address *content);
 	void print();
 };

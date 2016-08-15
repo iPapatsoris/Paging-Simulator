@@ -101,13 +101,16 @@ void Simulator::runLRU(Address *address) {
 void Simulator::runWorkingSet(Address *address, bool& processSwitch) {
 	WorkingSet *workingSet = workingSetManager->getWorkingSetByProcess(address->getProcessId());
 	if (processSwitch) {
+		cout << "Restoring process " << address->getProcessId() << " working set:" << endl;
 		processSwitch = false;
+		bool restore = false;
+		this->restoreWorkingSetMemory(workingSet->getWorkingSet(), restore);
+		if (! restore) {
+			cout << "\tWorking set is already in memory" << endl;
+		}
 	}
 	Address *victimAddress = NULL;
 	workingSet->update(*address, &victimAddress);
-	if (victimAddress == NULL)
-		cout << "NULL1" << endl;
-
 	Address **mappingFrame = invertedPageTable.getFrameByAddress(*address);
 	if (mappingFrame != NULL) {
 		/* Page already in memory, check for 'write' request */
@@ -131,8 +134,8 @@ void Simulator::runWorkingSet(Address *address, bool& processSwitch) {
 				victimFrame = invertedPageTable.getFrameByAddress(*victimAddress);
 			}
 			else {
-				cout << "under development!" << endl;//delete something not in set
-				exit(EXIT_FAILURE);
+				cout << "delete something not in set" << endl;
+				victimFrame = invertedPageTable.getVictimFrameNotInSet(workingSet->getWorkingSet());
 			}
 			Address *toDelete = *victimFrame;
 			*victimFrame = address;
@@ -150,6 +153,28 @@ void Simulator::runWorkingSet(Address *address, bool& processSwitch) {
 	}
 	workingSet->print();
 
+}
+
+void Simulator::restoreWorkingSetMemory(std::list<Address>& workingSet, bool& restore) {
+	for (list<Address>::iterator it = workingSet.begin() ; it != workingSet.end() ; it++) {
+		Address **mappingFrame = invertedPageTable.getFrameByAddress(*it);
+		if (mappingFrame == NULL) {
+			if (! restore) {
+				restore = true;
+			}
+			Address **victimFrame = invertedPageTable.getVictimFrameNotInSet(workingSet);
+			Address *toDelete = *victimFrame;
+			*victimFrame = new Address(*it);
+			cout << "\t";
+			printPageFault(toDelete, &(*it));
+			if (toDelete->getDirty()) {
+				cout << " Saving victim to disk.";
+				statistics.diskWrites++;
+			}
+			cout << endl;
+			delete toDelete;
+		}
+	}
 }
 
 /* Return next page request according to parameters */
@@ -177,12 +202,16 @@ Address *Simulator::getTrace(ifstream& trace1, ifstream& trace2, bool& processSw
 	Address *address = new Address(processId, pageNumber, dirty);
 	delete[] c_line;
 
+	/* Mark start of a new process for working set restoration */
+	if (curQuantum == quantum) {
+		processSwitch = true;
+	}
+
 	/* Switch trace between processes */
 	if (! --curQuantum) {
 		curQuantum = quantum;
 		toggleProcessId(processId);
 		toggleTrace(&trace, trace1, trace2);
-		processSwitch = true;
 	}
 	return address;
 }

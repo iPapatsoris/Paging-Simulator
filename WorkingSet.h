@@ -17,7 +17,7 @@ public:
 	WorkingSet(const int& workingSetMaxSize) : workingSetMaxSize(workingSetMaxSize) {}
 	~WorkingSet() {}
 	void update(const Address& address, Address **victimAddress);
-	std::list<Address> getWorkingSet();
+	std::list<Address>& getWorkingSet();
 	bool recentListIsFull();
 	bool workingSetIsFull();
 	void print();

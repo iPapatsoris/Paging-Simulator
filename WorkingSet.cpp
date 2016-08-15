@@ -27,11 +27,11 @@ WorkingSet *WorkingSetManager::getWorkingSetByProcess(const int& processId) {
 void WorkingSet::update(const Address& address, Address **victimAddress) {
 	if (this->recentListIsFull()) {
 		*victimAddress = new Address(recentList.front());
-		recentList.pop_front(); cout << "null? " << bool(*victimAddress == NULL) << endl;
+		recentList.pop_front();
 		if (this->workingSetIsFull() && find(recentList.begin(), recentList.end(), **victimAddress) == recentList.end()) {
-			workingSet.remove(**victimAddress); cout << "ok" << endl;
+			workingSet.remove(**victimAddress);
 		}
-		else { cout << "no" << endl;
+		else {
 			delete *victimAddress;
 			*victimAddress = NULL;
 		}
@@ -40,11 +40,9 @@ void WorkingSet::update(const Address& address, Address **victimAddress) {
 	if (find(workingSet.begin(), workingSet.end(), address) == workingSet.end()) {
 		workingSet.push_back(address);
 	}
-	if (*victimAddress == NULL)
-			cout << "NULL0" << endl;
 }
 
-list<Address> WorkingSet::getWorkingSet() {
+list<Address>& WorkingSet::getWorkingSet() {
 	return workingSet;
 }
 

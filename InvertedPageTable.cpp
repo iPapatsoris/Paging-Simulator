@@ -1,5 +1,6 @@
 #include "InvertedPageTable.h"
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 
@@ -48,16 +49,15 @@ void InvertedPageTable::occupyFrame(Address **frame, Address *content) {
 	*frame = content;
 }
 
-/*Address **InvertedPageTable::getVictimFrameNotInSet(unordered_set<int> workingSet, const int& processId) {
+Address **InvertedPageTable::getVictimFrameNotInSet(const list<Address>& workingSet) {
 	for (int frame = 0 ; frame < invertedPageTableSize ; frame++) {
-		Address address = Address(processId, )
-		if (invertedPageTable[frame]->equals() ) {
+		if (find(workingSet.begin(), workingSet.end(), *invertedPageTable[frame]) == workingSet.end()) {
 			return &invertedPageTable[frame];
 		}
 	}
 	return NULL;
 }
-}*/
+
 
 void InvertedPageTable::print() {
 	cout << "\n~~~ InvertedPageTable ~~~\n";
