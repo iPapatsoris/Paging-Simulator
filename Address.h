@@ -20,6 +20,7 @@ public:
 	bool equals(const Address& address);
 	bool operator == (const Address& address) const;
 	std::string toString();
+	void print();
 };
 
 #endif /* ADDRESS_H_ */

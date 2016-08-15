@@ -28,7 +28,7 @@ void WorkingSet::update(const Address& address, Address **victimAddress) {
 	if (this->recentListIsFull()) {
 		*victimAddress = new Address(recentList.front());
 		recentList.pop_front();
-		if (this->workingSetIsFull() && find(recentList.begin(), recentList.end(), **victimAddress) == recentList.end()) {
+		if (find(recentList.begin(), recentList.end(), **victimAddress) == recentList.end()) {
 			workingSet.remove(**victimAddress);
 		}
 		else {

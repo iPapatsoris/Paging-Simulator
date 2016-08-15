@@ -1,5 +1,6 @@
 #include "Address.h"
 #include <string>
+#include <iostream>
 
 using namespace std;
 
@@ -19,4 +20,9 @@ bool Address::operator == (const Address& address) const {
 
 string Address::toString() {
 	return to_string(processId)+" "+to_string(pageNumber)+" "+to_string(dirty);
+}
+
+void Address::print() {
+	cout << "Requesting page " << pageNumber << " from process " << processId << " for "
+			<< (dirty ? "WRITE." : "READ.") << endl;
 }

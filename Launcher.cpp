@@ -20,6 +20,7 @@ int main(int argc, char **argv) {
 	int workingSetSize = 0;
 	int maxReferences = -1;
 	int frameSize = FRAME_SIZE;
+	bool print = true;
 
 	/* Argument parse */
 	for (int i=1 ; i < argc ; i++) {
