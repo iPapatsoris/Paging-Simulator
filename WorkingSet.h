@@ -6,11 +6,13 @@
 #include <list>
 #include "Address.h"
 
+/* Keep a number of the most recent page requests for each process.
+ * Always put each process's working set in memory before executing. */
 class WorkingSet {
 
 private:
 	std::list<Address> recentList;
-	std::list< Address> workingSet;
+	std::list< Address> workingSet; // Unique elements of recentList
 	int workingSetMaxSize;
 
 public:
@@ -18,11 +20,11 @@ public:
 	~WorkingSet() {}
 	void update(const Address& address, Address **victimAddress);
 	std::list<Address>& getWorkingSet();
-	bool recentListIsFull();
-	bool workingSetIsFull();
-	void print();
+	bool recentListIsFull() const;
+	void print() const;
 };
 
+/* Working set for each process */
 class WorkingSetManager {
 	friend class WorkingSet;
 

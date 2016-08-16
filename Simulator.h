@@ -32,6 +32,7 @@ public:
 	void run();
 	void runLRU(Address *address);
 	void runWorkingSet(Address *address, bool& processSwitch);
+	void checkWrite(Address *address, Address *mappingAddress);
 	Address *getTrace(std::ifstream& trace1, std::ifstream& trace2, bool& processSwitch);
 	void restoreWorkingSetMemory(std::list<Address>& workingSet, bool& restore);
 	void static toggleProcessId(int& processId);

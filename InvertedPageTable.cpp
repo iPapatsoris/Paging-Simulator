@@ -7,15 +7,13 @@ using namespace std;
 InvertedPageTable::InvertedPageTable(const int& frames) {
 	invertedPageTableSize = frames;
 	invertedPageTable = new Address *[frames];
-	int frame;
-	for (frame = 0 ; frame < frames ; frame++) {
+	for (int frame = 0 ; frame < frames ; frame++) {
 		invertedPageTable[frame] = NULL;
 	}
 }
 
 InvertedPageTable::~InvertedPageTable() {
-	int frame;
-	for (frame = 0 ; frame < invertedPageTableSize ; frame++ ) {
+	for (int frame = 0 ; frame < invertedPageTableSize ; frame++ ) {
 		if (invertedPageTable[frame] != NULL) {
 			delete invertedPageTable[frame];
 		}
@@ -25,8 +23,7 @@ InvertedPageTable::~InvertedPageTable() {
 
 /* Return frame holding given Address, NULL if not found */
 Address **InvertedPageTable::getFrameByAddress(const Address& address) {
-	int frame;
-	for (frame = 0 ; frame < invertedPageTableSize ; frame++ ) {
+	for (int frame = 0 ; frame < invertedPageTableSize ; frame++ ) {
 		if (invertedPageTable[frame] != NULL && invertedPageTable[frame]->equals(address)) {
 			return &invertedPageTable[frame];
 		}
@@ -36,8 +33,7 @@ Address **InvertedPageTable::getFrameByAddress(const Address& address) {
 
 /* Return first unoccupied frame, NULL if none found */
 Address **InvertedPageTable::getFreeFrame() {
-	int frame;
-	for (frame = 0 ; frame < invertedPageTableSize ; frame++ ) {
+	for (int frame = 0 ; frame < invertedPageTableSize ; frame++ ) {
 		if (invertedPageTable[frame] == NULL) {
 			return &invertedPageTable[frame];
 		}
@@ -59,10 +55,9 @@ Address **InvertedPageTable::getVictimFrameNotInSet(const list<Address>& working
 }
 
 
-void InvertedPageTable::print() {
+void InvertedPageTable::print() const {
 	cout << "\n~~~ InvertedPageTable ~~~\n";
-	int frame;
-	for (frame = 0 ; frame < invertedPageTableSize ; frame++ ) {
+	for (int frame = 0 ; frame < invertedPageTableSize ; frame++ ) {
 		if (invertedPageTable[frame] == NULL) {
 			cout << "NULL" << endl;
 		}

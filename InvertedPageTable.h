@@ -17,7 +17,7 @@ public:
 	Address **getFreeFrame();
 	Address **getVictimFrameNotInSet(const std::list<Address>& workingSet);
 	void occupyFrame(Address **frame, Address *content);
-	void print();
+	void print() const;
 };
 
 #endif /* INVERTEDPAGETABLE_H_ */

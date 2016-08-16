@@ -16,7 +16,7 @@ private:
 public:
 	Statistics() : pageRequests(0), pageFaults(0), diskWrites(0) {}
 	~Statistics() {}
-	std::string toString();
+	std::string toString() const;
 };
 
 #endif /* STATISTICS_H_ */

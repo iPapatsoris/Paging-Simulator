@@ -6,15 +6,13 @@ using namespace std;
 
 WorkingSetManager::WorkingSetManager(const int& workingSetMaxSize) {
 	workingSet = new WorkingSet *[NO_PROCESSES];
-	int process;
-	for (process = 0 ; process < NO_PROCESSES ; process++) {
+	for (int process = 0 ; process < NO_PROCESSES ; process++) {
 		workingSet[process] = new WorkingSet(workingSetMaxSize);
 	}
 }
 
 WorkingSetManager::~WorkingSetManager() {
-	int process;
-	for (process = 0 ; process < NO_PROCESSES ; process++) {
+	for (int process = 0 ; process < NO_PROCESSES ; process++) {
 		delete workingSet[process];
 	}
 	delete[] workingSet;
@@ -24,9 +22,12 @@ WorkingSet *WorkingSetManager::getWorkingSetByProcess(const int& processId) {
 	return workingSet[processId-1];
 }
 
+/* Advance working set window. If oldest page is removed, set victimAddress
+ * for removal from memory by caller.
+ */
 void WorkingSet::update(const Address& address, Address **victimAddress) {
 	if (this->recentListIsFull()) {
-		*victimAddress = new Address(recentList.front());
+		*victimAddress = new Address(recentList.front()); // Oldest page
 		recentList.pop_front();
 		if (find(recentList.begin(), recentList.end(), **victimAddress) == recentList.end()) {
 			workingSet.remove(**victimAddress);
@@ -36,8 +37,10 @@ void WorkingSet::update(const Address& address, Address **victimAddress) {
 			*victimAddress = NULL;
 		}
 	}
+	/* Include newcomer */
 	recentList.push_back(address);
 	if (find(workingSet.begin(), workingSet.end(), address) == workingSet.end()) {
+		/* No duplicates in working SET */
 		workingSet.push_back(address);
 	}
 }
@@ -46,21 +49,17 @@ list<Address>& WorkingSet::getWorkingSet() {
 	return workingSet;
 }
 
-bool WorkingSet::recentListIsFull() {
+bool WorkingSet::recentListIsFull() const {
 	return workingSetMaxSize == recentList.size();
 }
 
-bool WorkingSet::workingSetIsFull() {
-	return workingSetMaxSize == workingSet.size();
-}
-
-void WorkingSet::print() {
+void WorkingSet::print() const {
 	cout << "\n=== Recent List === " << endl;
-	for (list<Address>::iterator it = recentList.begin() ; it != recentList.end() ; it++) {
+	for (list<Address>::const_iterator it = recentList.begin() ; it != recentList.end() ; it++) {
 		cout << (*it).toString() << endl;
 	}
 	cout << "=== Working Set === " << endl;
-	for (list<Address>::iterator it = workingSet.begin() ; it != workingSet.end() ; it++) {
+	for (list<Address>::const_iterator it = workingSet.begin() ; it != workingSet.end() ; it++) {
 		cout << (*it).toString() << endl;
 	}
 

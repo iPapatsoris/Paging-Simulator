@@ -4,6 +4,8 @@
 #include <list>
 #include "Address.h"
 
+/* Keep most recent page requests at the front of the list.
+ * Last element is the least recently used. */
 class LRU {
 
 private:
@@ -15,7 +17,7 @@ public:
 	std::list<Address *>& getRecentList() {return recentList;}
 	void prioritize(Address *address);
 	Address *getVictim();
-	void print();
+	void print() const;
 };
 
 #endif /* LRU_H_ */

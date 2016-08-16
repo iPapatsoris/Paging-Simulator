@@ -10,19 +10,19 @@ Address::Address(const int& processId, const int& pageNumber, const bool& dirty)
 	this->dirty = dirty;
 }
 
-bool Address::equals(const Address& address) {
+bool Address::equals(const Address& address) const {
 	return pageNumber == address.pageNumber && processId == address.processId;
 }
 
 bool Address::operator == (const Address& address) const {
-	return pageNumber == address.pageNumber && processId == address.processId;
+	return this->equals(address);
 }
 
-string Address::toString() {
+string Address::toString() const {
 	return to_string(processId)+" "+to_string(pageNumber)+" "+to_string(dirty);
 }
 
-void Address::print() {
+void Address::print() const {
 	cout << "Requesting page " << pageNumber << " from process " << processId << " for "
-			<< (dirty ? "WRITE." : "READ.") << endl;
+		 << (dirty ? "WRITE." : "READ.") << endl;
 }

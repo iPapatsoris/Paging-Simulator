@@ -3,32 +3,32 @@ HEADER = Simulator.h Address.h InvertedPageTable.h LRU.h WorkingSet.h Statistics
 
 all: psim
 
-CC 	= g++ -g
-FLAGS	= -c 
+CC 	= g++
+FLAGS	= -c -std=c++11
 
 psim: $(OBJS) $(HEADER)
 	$(CC) -o psim $(OBJS)
 
 Launcher.o: Launcher.cpp
-	$(CC) $(FLAGS) Launcher.cpp -std=c++11
+	$(CC) $(FLAGS) Launcher.cpp 
 
 Simulator.o: Simulator.cpp
-	$(CC) $(FLAGS) Simulator.cpp -std=c++11
+	$(CC) $(FLAGS) Simulator.cpp
 
 Address.o: Address.cpp
-	$(CC) $(FLAGS) Address.cpp -std=c++11
+	$(CC) $(FLAGS) Address.cpp
 
 InvertedPageTable.o: InvertedPageTable.cpp
-	$(CC) $(FLAGS) InvertedPageTable.cpp -std=c++11
+	$(CC) $(FLAGS) InvertedPageTable.cpp
 
 LRU.o: LRU.cpp
 	$(CC) $(FLAGS) LRU.cpp 
 
 WorkingSet.o: WorkingSet.cpp
-	$(CC) $(FLAGS) WorkingSet.cpp -std=c++11
+	$(CC) $(FLAGS) WorkingSet.cpp
 
 Statistics.o: Statistics.cpp
-	$(CC) $(FLAGS) Statistics.cpp -std=c++11
+	$(CC) $(FLAGS) Statistics.cpp 
 	
 clean:
 	rm -f psim $(OBJS)

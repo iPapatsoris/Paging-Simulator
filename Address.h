@@ -13,14 +13,14 @@ private:
 public:
 	Address(const int& processId, const int& pageNumber, const bool& dirty);
 	~Address() {}
-	bool getDirty() {return dirty;}
-	int getProcessId() {return processId;}
-	int getPageNumber() {return pageNumber;}
+	bool getDirty() const {return dirty;}
+	int getProcessId() const {return processId;}
+	int getPageNumber() const {return pageNumber;}
 	void setDirty(const bool& dirty) {this->dirty = dirty;}
-	bool equals(const Address& address);
+	bool equals(const Address& address) const;
 	bool operator == (const Address& address) const;
-	std::string toString();
-	void print();
+	std::string toString() const;
+	void print() const;
 };
 
 #endif /* ADDRESS_H_ */

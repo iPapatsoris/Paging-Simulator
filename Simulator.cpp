@@ -65,23 +65,23 @@ void Simulator::runLRU(Address *address) {
 	if (mappingFrame != NULL) {
 		/* Page already in memory */
 		lru->prioritize(*mappingFrame);
-		/* Check for 'write' request */
-		if (address->getDirty() == true && (*mappingFrame)->getDirty() == false) {
-			(*mappingFrame)->setDirty(true);
-			cout << "Page " << address->getPageNumber() << " from process " << address->getProcessId()
-	     					<< " changed to dirty" << endl;
-		}
+		this->checkWrite(address, *mappingFrame);
 		delete address;
 	}
 	else {
 		/* Page not in memory */
 		statistics.pageFaults++;
 		Address **freeFrame = invertedPageTable.getFreeFrame();
-		if (freeFrame == NULL) {
+		if (freeFrame != NULL) {
+			invertedPageTable.occupyFrame(freeFrame, address);
+			lru->getRecentList().push_front(address);
+			printPageFault(NULL, address);
+		}
+		else {
 			Address *victim;
 			victim = lru->getVictim();
 			Address **victimFrame = invertedPageTable.getFrameByAddress(*victim);
-			*victimFrame = address;
+			invertedPageTable.occupyFrame(victimFrame, address);
 			lru->getRecentList().push_front(address);
 			printPageFault(victim, address);
 			if (victim->getDirty()) {
@@ -89,11 +89,6 @@ void Simulator::runLRU(Address *address) {
 				statistics.diskWrites++;
 			}
 			delete victim;
-		}
-		else {
-			invertedPageTable.occupyFrame(freeFrame, address);
-			lru->getRecentList().push_front(address);
-			printPageFault(NULL, address);
 		}
 		cout << endl;
 	}
@@ -104,9 +99,9 @@ void Simulator::runWorkingSet(Address *address, bool& processSwitch) {
 	if (processSwitch) {
 		cout << "Restoring process " << address->getProcessId() << " working set:" << endl;
 		processSwitch = false;
-		bool restore = false;
-		this->restoreWorkingSetMemory(workingSet->getWorkingSet(), restore);
-		if (! restore) {
+		bool change = false;
+		this->restoreWorkingSetMemory(workingSet->getWorkingSet(), change);
+		if (! change) {
 			cout << "\tWorking set is already in memory" << endl;
 		}
 	}
@@ -114,15 +109,12 @@ void Simulator::runWorkingSet(Address *address, bool& processSwitch) {
 	workingSet->update(*address, &victimAddress);
 	Address **mappingFrame = invertedPageTable.getFrameByAddress(*address);
 	if (mappingFrame != NULL) {
-		/* Page already in memory, check for 'write' request */
-		if (address->getDirty() == true && (*mappingFrame)->getDirty() == false) {
-			(*mappingFrame)->setDirty(true);
-			cout << "Page " << address->getPageNumber() << " from process " << address->getProcessId()
-							<< " changed to dirty" << endl;
-		}
+		/* Page already in memory */
+		this->checkWrite(address, *mappingFrame);
 		delete address;
 	}
 	else {
+		/* Page not in memory */
 		statistics.pageFaults++;
 		Address **freeFrame = invertedPageTable.getFreeFrame();
 		if (freeFrame != NULL) {
@@ -130,12 +122,13 @@ void Simulator::runWorkingSet(Address *address, bool& processSwitch) {
 			printPageFault(NULL, address);
 		}
 		else {
+			/* Remove a page not in working set.
+			 * Prioritize the one just removed from working set (if any) */
 			Address **victimFrame;
 			if (victimAddress != NULL) {
 				victimFrame = invertedPageTable.getFrameByAddress(*victimAddress);
 			}
 			else {
-				//cout << "delete something not in set" << endl;
 				victimFrame = invertedPageTable.getVictimFrameNotInSet(workingSet->getWorkingSet());
 			}
 			Address *toDelete = *victimFrame;
@@ -145,7 +138,6 @@ void Simulator::runWorkingSet(Address *address, bool& processSwitch) {
 				cout << " Saving victim to disk.";
 				statistics.diskWrites++;
 			}
-			//cout << endl;
 			delete toDelete;
 		}
 		cout << endl;
@@ -154,16 +146,24 @@ void Simulator::runWorkingSet(Address *address, bool& processSwitch) {
 		delete victimAddress;
 	}
 	//workingSet->print();
-
 }
 
-void Simulator::restoreWorkingSetMemory(std::list<Address>& workingSet, bool& restore) {
+/* Update page in memory to WRITE if its current request is for WRITE */
+void Simulator::checkWrite(Address *address, Address *mappingAddress) {
+	if (address->getDirty() == true && mappingAddress->getDirty() == false) {
+		mappingAddress->setDirty(true);
+		cout << "Page " << address->getPageNumber() << " from process " << address->getProcessId()
+		     << " changed to dirty" << endl;
+	}
+}
+
+void Simulator::restoreWorkingSetMemory(std::list<Address>& workingSet, bool& change) {
 	for (list<Address>::iterator it = workingSet.begin() ; it != workingSet.end() ; it++) {
 		Address **mappingFrame = invertedPageTable.getFrameByAddress(*it);
 		if (mappingFrame == NULL) {
 			statistics.pageFaults++;
-			if (! restore) {
-				restore = true;
+			if (! change) {
+				change = true;
 			}
 			Address **victimFrame = invertedPageTable.getVictimFrameNotInSet(workingSet);
 			Address *toDelete = *victimFrame;

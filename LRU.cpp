@@ -16,9 +16,9 @@ Address *LRU::getVictim() {
 	return victim;
 }
 
-void LRU::print() {
+void LRU::print() const {
 	cout << "=== Recent List === " << endl;
-	for (list<Address *>::iterator it = recentList.begin() ; it != recentList.end() ; it++) {
+	for (list<Address *>::const_iterator it = recentList.begin() ; it != recentList.end() ; it++) {
 		cout << (*it)->toString() << endl;
 	}
 }
