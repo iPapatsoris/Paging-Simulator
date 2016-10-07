@@ -57,8 +57,6 @@ int main(int argc, char **argv) {
 			cout << "Failure: working set size should be less or equal to the number of frames" << endl;
 			exit(EXIT_FAILURE);
 		}
-	cout << replacementAlgorithm << " " << frames << " " << quantum  << endl;
-	cout << workingSetSize << maxReferences << endl;
 
 	Simulator sim(replacementAlgorithm, frames, frameSize, quantum, workingSetSize, maxReferences);
 	sim.run();

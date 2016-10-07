@@ -11,8 +11,3 @@ Receive page requests by 2 processes concurrently and perform memory management 
 * **``` <window>```**: Working set window size
 
 Arguments can be provided in any order. -m is optional and -w is only needed when using the Working Set method. Receive input from *.trace* files.
-
-## toDo
- - disk read
- - working set restoration: page fault? yes
- - -m receives from both or in total?
